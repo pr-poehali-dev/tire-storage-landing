@@ -1,0 +1,25 @@
+{
+  "tests": [
+    {
+      "name": "Test sending lead to Telegram",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "name": "Иван Тестовый",
+        "phone": "+7 (999) 123-45-67",
+        "message": "Хочу сдать шины R16 на хранение"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": true
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Test OPTIONS request for CORS",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    }
+  ]
+}
