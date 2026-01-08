@@ -1,12 +1,62 @@
+import { useState } from 'react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import Icon from '@/components/ui/icon';
+import { useToast } from '@/hooks/use-toast';
 
 const Index = () => {
+  const { toast } = useToast();
+  const [isOrderOpen, setIsOrderOpen] = useState(false);
+  const [orderData, setOrderData] = useState({ name: '', phone: '', tariff: '' });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const scrollToSection = (id: string) => {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const handleOrderSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch('https://functions.poehali.dev/a4545f55-dff0-48fc-9eff-a09e6af822fe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: orderData.name,
+          phone: orderData.phone,
+          message: `Заявка на тариф: ${orderData.tariff}`
+        }),
+      });
+
+      if (response.ok) {
+        toast({
+          title: "Заявка отправлена!",
+          description: "Мы свяжемся с вами в ближайшее время.",
+        });
+        setOrderData({ name: '', phone: '', tariff: '' });
+        setIsOrderOpen(false);
+      } else {
+        throw new Error('Failed to send');
+      }
+    } catch (error) {
+      toast({
+        title: "Ошибка отправки",
+        description: "Попробуйте позвонить нам напрямую",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const openOrderDialog = (tariff: string) => {
+    setOrderData({ ...orderData, tariff });
+    setIsOrderOpen(true);
   };
 
   return (
@@ -19,11 +69,11 @@ const Index = () => {
             <span className="text-2xl font-bold text-accent">OtelShin</span>
           </div>
           <nav className="hidden md:flex items-center gap-6">
+            <button onClick={() => scrollToSection('about')} className="hover:text-primary transition-colors">О нас</button>
             <button onClick={() => scrollToSection('services')} className="hover:text-primary transition-colors">Услуги</button>
             <button onClick={() => scrollToSection('pricing')} className="hover:text-primary transition-colors">Цены</button>
             <button onClick={() => scrollToSection('benefits')} className="hover:text-primary transition-colors">Преимущества</button>
             <button onClick={() => scrollToSection('faq')} className="hover:text-primary transition-colors">FAQ</button>
-            <button onClick={() => scrollToSection('contact')} className="hover:text-primary transition-colors">Контакты</button>
           </nav>
           <a href="tel:+79780703665" className="flex items-center gap-2 text-lg font-semibold text-primary hover:text-primary/80 transition-colors">
             <Icon name="Phone" size={20} />
@@ -89,36 +139,83 @@ const Index = () => {
         </div>
       </section>
 
+      {/* About Section */}
+      <section id="about" className="py-20">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto">
+            <div className="text-center mb-12 animate-fade-in">
+              <h2 className="text-4xl font-bold mb-4">О компании OtelShin</h2>
+            </div>
+            <Card className="hover:shadow-lg transition-all duration-300">
+              <CardContent className="p-8 space-y-4">
+                <p className="text-lg leading-relaxed">
+                  <strong>OtelShin</strong> — профессиональный сервис хранения автомобильных шин в городе Солнечногорск. 
+                  Мы работаем с 2019 года и за это время заслужили доверие более 100 клиентов.
+                </p>
+                <p className="text-lg leading-relaxed">
+                  Наше современное хранилище оборудовано системами климат-контроля, обеспечивающими идеальные условия 
+                  для сохранности ваших шин круглый год. Мы гарантируем безопасность благодаря профессиональной охране 
+                  и видеонаблюдению 24/7.
+                </p>
+                <p className="text-lg leading-relaxed">
+                  Мы предлагаем бесплатный вывоз и доставку шин, индивидуальную маркировку каждого комплекта, 
+                  а также официальное оформление договора хранения с полной юридической защитой.
+                </p>
+                <div className="grid md:grid-cols-3 gap-6 pt-6">
+                  <div className="text-center p-4 bg-primary/5 rounded-lg">
+                    <div className="text-3xl font-bold text-primary mb-2">5+</div>
+                    <div className="text-sm text-muted-foreground">Лет на рынке</div>
+                  </div>
+                  <div className="text-center p-4 bg-primary/5 rounded-lg">
+                    <div className="text-3xl font-bold text-primary mb-2">100+</div>
+                    <div className="text-sm text-muted-foreground">Довольных клиентов</div>
+                  </div>
+                  <div className="text-center p-4 bg-primary/5 rounded-lg">
+                    <div className="text-3xl font-bold text-primary mb-2">500+</div>
+                    <div className="text-sm text-muted-foreground">Комплектов на хранении</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
+
       {/* Services Section */}
       <section id="services" className="py-20 bg-muted/30">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12 animate-fade-in">
             <h2 className="text-4xl font-bold mb-4">Кому будут полезны наши услуги</h2>
           </div>
-          <div className="grid md:grid-cols-3 gap-6">
-            {[
-              { icon: 'Car', title: 'Автовладельцам', description: 'Освободите место в гараже или балконе' },
-              { icon: 'Building2', title: 'Автосервисам', description: 'Храним шины ваших клиентов профессионально' },
-              { icon: 'ShieldCheck', title: 'Компенсация за задержку', description: 'Гарантируем возврат по договору' },
-              { icon: 'ThermometerSnowflake', title: 'Климат-контроль', description: 'Оптимальная температура круглый год' },
-              { icon: 'CheckCircle', title: 'Гарантия', description: '100% гарантия сохранности' },
-              { icon: 'Headphones', title: 'Поддержка', description: 'Всегда на связи 24/7' },
-              { icon: 'Zap', title: 'Быстрое обслуживание', description: 'Примем и вернём шины в удобное время' },
-              { icon: 'Award', title: 'Надёжность', description: 'Многолетний опыт работы' },
-              { icon: 'Star', title: 'Лучшие условия', description: 'Оптимальное соотношение цены и качества' },
-            ].map((service, index) => (
-              <Card key={index} className="hover:shadow-lg transition-all duration-300 hover:-translate-y-1 animate-fade-in" style={{ animationDelay: `${index * 0.1}s` }}>
-                <CardHeader>
-                  <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                    <Icon name={service.icon} className="text-primary" size={28} />
-                  </div>
-                  <CardTitle className="text-xl">{service.title}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <CardDescription className="text-base">{service.description}</CardDescription>
-                </CardContent>
-              </Card>
-            ))}
+          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            <Card className="hover:shadow-lg transition-all duration-300 animate-fade-in">
+              <CardHeader>
+                <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                  <Icon name="Car" className="text-primary" size={32} />
+                </div>
+                <CardTitle className="text-2xl">Автовладельцам</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <CardDescription className="text-base">
+                  Освободите место в гараже или на балконе. Мы обеспечим идеальные условия хранения 
+                  ваших шин в любое время года с бесплатной доставкой.
+                </CardDescription>
+              </CardContent>
+            </Card>
+            <Card className="hover:shadow-lg transition-all duration-300 animate-fade-in" style={{ animationDelay: '0.1s' }}>
+              <CardHeader>
+                <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                  <Icon name="Building2" className="text-primary" size={32} />
+                </div>
+                <CardTitle className="text-2xl">Автосервисам</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <CardDescription className="text-base">
+                  Профессиональное хранение шин ваших клиентов. Официальное оформление, контроль условий, 
+                  оперативная выдача по запросу.
+                </CardDescription>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </section>
@@ -128,24 +225,28 @@ const Index = () => {
         <div className="container mx-auto px-4">
           <div className="text-center mb-12 animate-fade-in">
             <h2 className="text-4xl font-bold mb-4">Почему выбирают нас?</h2>
-            <p className="text-xl text-muted-foreground">Современное хранилище с оптимальными условиями и индивидуальным подходом</p>
+            <p className="text-xl text-muted-foreground">Современное хранилище с оптимальными условиями</p>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
-              { icon: 'Thermometer', title: 'Климат-контроль', description: 'Оптимальная температура и влажность' },
-              { icon: 'Lock', title: 'Безопасность', description: 'Видеонаблюдение и охрана 24/7' },
-              { icon: 'Truck', title: 'Бесплатная доставка', description: 'Заберём и привезём бесплатно' },
-              { icon: 'FileText', title: 'Договор хранения', description: 'Официальное оформление и гарантии' },
+              { icon: 'ThermometerSnowflake', title: 'Климат-контроль', description: 'Оптимальная температура и влажность круглый год' },
+              { icon: 'ShieldCheck', title: 'Компенсация за задержку', description: 'Гарантируем возврат шин строго по договору' },
+              { icon: 'CheckCircle', title: '100% гарантия', description: 'Полная сохранность ваших шин' },
+              { icon: 'Headphones', title: 'Поддержка 24/7', description: 'Всегда на связи в любое время' },
+              { icon: 'Zap', title: 'Быстрое обслуживание', description: 'Приём и возврат в удобное вам время' },
+              { icon: 'Award', title: 'Надёжность', description: 'Многолетний опыт и репутация' },
+              { icon: 'Star', title: 'Лучшие условия', description: 'Оптимальное соотношение цены и качества' },
+              { icon: 'Lock', title: 'Безопасность', description: 'Видеонаблюдение и охрана склада' },
             ].map((benefit, index) => (
-              <Card key={index} className="text-center hover:shadow-lg transition-all duration-300 animate-fade-in" style={{ animationDelay: `${index * 0.1}s` }}>
+              <Card key={index} className="hover:shadow-lg transition-all duration-300 hover:-translate-y-1 animate-fade-in" style={{ animationDelay: `${index * 0.05}s` }}>
                 <CardHeader>
-                  <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                    <Icon name={benefit.icon} className="text-primary" size={32} />
+                  <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                    <Icon name={benefit.icon} className="text-primary" size={28} />
                   </div>
-                  <CardTitle>{benefit.title}</CardTitle>
+                  <CardTitle className="text-lg">{benefit.title}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <CardDescription>{benefit.description}</CardDescription>
+                  <CardDescription className="text-base">{benefit.description}</CardDescription>
                 </CardContent>
               </Card>
             ))}
@@ -220,8 +321,13 @@ const Index = () => {
                       <span>{feature}</span>
                     </div>
                   ))}
-                  <Button className="w-full mt-6" size="lg" variant={plan.popular ? 'default' : 'outline'} asChild>
-                    <a href="tel:+79780703665">Выбрать тариф</a>
+                  <Button 
+                    className="w-full mt-6" 
+                    size="lg" 
+                    variant={plan.popular ? 'default' : 'outline'}
+                    onClick={() => openOrderDialog(plan.radius)}
+                  >
+                    Выбрать тариф
                   </Button>
                 </CardContent>
               </Card>
@@ -230,8 +336,41 @@ const Index = () => {
         </div>
       </section>
 
+      {/* Additional Services Section */}
+      <section className="py-20 bg-muted/30">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12 animate-fade-in">
+            <h2 className="text-4xl font-bold mb-4">Дополнительные услуги</h2>
+            <p className="text-xl text-muted-foreground">Расширенный сервис для вашего удобства</p>
+          </div>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+            {[
+              { icon: 'Wrench', title: 'Шиномонтаж', price: 'от 800₽', description: 'Профессиональная замена шин' },
+              { icon: 'Droplets', title: 'Мойка колёс', price: '400₽', description: 'Чистка перед хранением' },
+              { icon: 'Gauge', title: 'Балансировка', price: 'от 600₽', description: 'Точная балансировка колёс' },
+              { icon: 'Package', title: 'Упаковка', price: '200₽', description: 'Защитная упаковка комплекта' },
+              { icon: 'Camera', title: 'Фотофиксация', price: '300₽', description: 'Фото состояния шин' },
+              { icon: 'Truck', title: 'Срочная доставка', price: '500₽', description: 'Доставка в день обращения' },
+            ].map((service, index) => (
+              <Card key={index} className="hover:shadow-lg transition-all duration-300 hover:-translate-y-1 animate-fade-in" style={{ animationDelay: `${index * 0.05}s` }}>
+                <CardHeader>
+                  <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                    <Icon name={service.icon} className="text-primary" size={28} />
+                  </div>
+                  <CardTitle className="text-xl">{service.title}</CardTitle>
+                  <div className="text-2xl font-bold text-primary mt-2">{service.price}</div>
+                </CardHeader>
+                <CardContent>
+                  <CardDescription className="text-base">{service.description}</CardDescription>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* FAQ Section */}
-      <section id="faq" className="py-20 bg-muted/30">
+      <section id="faq" className="py-20">
         <div className="container mx-auto px-4 max-w-3xl">
           <div className="text-center mb-12 animate-fade-in">
             <h2 className="text-4xl font-bold mb-4">Часто задаваемые вопросы</h2>
@@ -277,7 +416,7 @@ const Index = () => {
       </section>
 
       {/* Contact Section */}
-      <section id="contact" className="py-20">
+      <section id="contact" className="py-20 bg-muted/30">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-12 animate-fade-in">
@@ -425,6 +564,53 @@ const Index = () => {
           </div>
         </div>
       </footer>
+
+      {/* Order Dialog */}
+      <Dialog open={isOrderOpen} onOpenChange={setIsOrderOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Оставить заявку</DialogTitle>
+            <DialogDescription>
+              Заполните форму и мы свяжемся с вами в ближайшее время
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleOrderSubmit} className="space-y-4">
+            <div>
+              <Label htmlFor="tariff">Выбранный тариф</Label>
+              <Input 
+                id="tariff" 
+                value={orderData.tariff} 
+                readOnly 
+                className="bg-muted"
+              />
+            </div>
+            <div>
+              <Label htmlFor="name">Ваше имя</Label>
+              <Input 
+                id="name" 
+                placeholder="Введите ваше имя" 
+                value={orderData.name}
+                onChange={(e) => setOrderData({ ...orderData, name: e.target.value })}
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="phone">Номер телефона</Label>
+              <Input 
+                id="phone" 
+                type="tel" 
+                placeholder="+7 (___) ___-__-__" 
+                value={orderData.phone}
+                onChange={(e) => setOrderData({ ...orderData, phone: e.target.value })}
+                required
+              />
+            </div>
+            <Button type="submit" className="w-full" disabled={isSubmitting}>
+              {isSubmitting ? 'Отправка...' : 'Отправить заявку'}
+            </Button>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
